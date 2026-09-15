@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/timer_session.dart';
 import '../models/hydration_entry.dart';
 import '../models/ambient_sound.dart';
+import '../models/live_radio.dart';
 import '../models/spotify_playlist.dart';
 import '../services/storage_service.dart';
 import '../services/audio_service.dart';
@@ -43,6 +44,10 @@ class AppState extends ChangeNotifier {
   String _customSpotifyUrl = '';
   SpotifyFocusPlaylist? _activeSpotifyPlaylist;
 
+  // Live radio properties
+  LiveRadioStation? _activeRadioStation;
+  final bool _autoStartLofi = true;
+
   // Completion trigger for UI (shows celebratory dialog)
   bool _shouldShowSipPrompt = false;
 
@@ -74,6 +79,10 @@ class AppState extends ChangeNotifier {
 
   String get customSpotifyUrl => _customSpotifyUrl;
   SpotifyFocusPlaylist? get activeSpotifyPlaylist => _activeSpotifyPlaylist;
+
+  LiveRadioStation? get activeRadioStation => _activeRadioStation;
+  bool get isRadioPlaying => _audio.isRadioPlaying;
+  bool get autoStartLofi => _autoStartLofi;
 
   bool get shouldShowSipPrompt => _shouldShowSipPrompt;
 
@@ -110,6 +119,16 @@ class AppState extends ChangeNotifier {
     _remainingSeconds = _totalSessionSeconds;
 
     notifyListeners();
+
+    // Auto-start lofi radio in background
+    if (_autoStartLofi) {
+      Future.delayed(const Duration(milliseconds: 800), () {
+        final station = LiveRadioStation.defaultStation;
+        _activeRadioStation = station;
+        _audio.playRadio(station);
+        notifyListeners();
+      });
+    }
   }
 
   // Timer controls
@@ -341,14 +360,47 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Live Radio Controls
+  Future<void> setRadioStation(LiveRadioStation station) async {
+    _activeRadioStation = station;
+    await _audio.playRadio(station);
+    notifyListeners();
+  }
+
+  Future<void> toggleRadio() async {
+    if (_audio.isRadioPlaying) {
+      await _audio.stopRadio();
+    } else if (_activeRadioStation != null) {
+      await _audio.playRadio(_activeRadioStation!);
+    } else {
+      final station = LiveRadioStation.defaultStation;
+      _activeRadioStation = station;
+      await _audio.playRadio(station);
+    }
+    notifyListeners();
+  }
+
+  Future<void> setRadioVolume(double volume) async {
+    await _audio.setRadioVolume(volume);
+    notifyListeners();
+  }
+
+  Future<void> stopRadio() async {
+    await _audio.stopRadio();
+    notifyListeners();
+  }
+
   // Spotify Focus Integration
   Future<bool> launchSpotifyPlaylist(SpotifyFocusPlaylist playlist) async {
     _activeSpotifyPlaylist = playlist;
     _triggerHaptic(HapticFeedbackType.light);
 
-    // Stop internal ambient sound so user can enjoy Spotify
+    // Stop internal audio so user can enjoy Spotify
     if (_audio.isAmbientPlaying) {
       await _audio.stopAmbient();
+    }
+    if (_audio.isRadioPlaying) {
+      await _audio.stopRadio();
     }
 
     final nativeUri = Uri.parse(playlist.spotifyUri);

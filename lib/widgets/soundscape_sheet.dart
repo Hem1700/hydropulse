@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/ambient_sound.dart';
+import '../models/live_radio.dart';
 import '../models/spotify_playlist.dart';
 import '../providers/app_state.dart';
 import '../theme/app_theme.dart';
@@ -29,7 +30,7 @@ class _SoundscapeSheetState extends State<SoundscapeSheet>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -43,11 +44,12 @@ class _SoundscapeSheetState extends State<SoundscapeSheet>
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accentColor = isDark ? AppTheme.nordicWater : AppTheme.ceramicWater;
 
     return Container(
-      height: MediaQuery.of(context).size.height * 0.72,
+      height: MediaQuery.of(context).size.height * 0.78,
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F1626) : Colors.white,
+        color: isDark ? AppTheme.nordicBg : AppTheme.ceramicBg,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
@@ -64,19 +66,26 @@ class _SoundscapeSheetState extends State<SoundscapeSheet>
           ),
           const SizedBox(height: 14),
 
-          // Header
+          // Header row with live radio status pill
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Focus Audio & Music',
+                  'Sound & Music',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
+                const SizedBox(width: 10),
+                if (appState.isRadioPlaying)
+                  _LivePill(
+                    label: appState.activeRadioStation?.name ?? 'Live Radio',
+                    isDark: isDark,
+                    accentColor: accentColor,
+                  ),
+                const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.close_rounded),
                   onPressed: () => Navigator.pop(context),
@@ -85,28 +94,29 @@ class _SoundscapeSheetState extends State<SoundscapeSheet>
             ),
           ),
 
-          // Tab Bar
+          // Tab Bar — 3 tabs
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             child: Container(
               height: 44,
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF192237) : const Color(0xFFEDF2F7),
+                color: isDark ? AppTheme.nordicCard : AppTheme.ceramicCard,
                 borderRadius: BorderRadius.circular(14),
               ),
               child: TabBar(
                 controller: _tabController,
                 indicator: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  color: AppTheme.primaryAqua,
+                  color: accentColor,
                 ),
                 indicatorSize: TabBarIndicatorSize.tab,
-                labelColor: Colors.black,
-                unselectedLabelColor: isDark ? Colors.white70 : Colors.black54,
-                labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                labelColor: isDark ? Colors.white : Colors.white,
+                unselectedLabelColor: isDark ? Colors.white60 : AppTheme.ceramicTextSecondary,
+                labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
                 tabs: const [
-                  Tab(text: '🌊 Offline Ambient'),
-                  Tab(text: '🎧 Spotify Playlists'),
+                  Tab(text: '📻 Lo-Fi Radio'),
+                  Tab(text: '🌊 Ambient'),
+                  Tab(text: '🎧 Spotify'),
                 ],
               ),
             ),
@@ -117,10 +127,8 @@ class _SoundscapeSheetState extends State<SoundscapeSheet>
             child: TabBarView(
               controller: _tabController,
               children: [
-                // TAB 1: Offline Ambient Soundscapes
-                _buildAmbientTab(context, appState, isDark),
-
-                // TAB 2: Spotify Focus Integration
+                _buildRadioTab(context, appState, isDark, accentColor),
+                _buildAmbientTab(context, appState, isDark, accentColor),
                 _buildSpotifyTab(context, appState, isDark),
               ],
             ),
@@ -130,17 +138,203 @@ class _SoundscapeSheetState extends State<SoundscapeSheet>
     );
   }
 
-  Widget _buildAmbientTab(BuildContext context, AppState appState, bool isDark) {
+  // ── Tab 1: Live Radio ───────────────────────────────────────────────────────
+
+  Widget _buildRadioTab(
+    BuildContext context,
+    AppState appState,
+    bool isDark,
+    Color accentColor,
+  ) {
+    final cardBg = isDark ? AppTheme.nordicCard : AppTheme.ceramicCard;
+    final cardSubtle = isDark ? AppTheme.nordicCardSubtle : AppTheme.ceramicCardSubtle;
+
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       children: [
+        // Now playing banner (if any)
+        if (appState.isRadioPlaying && appState.activeRadioStation != null) ...[
+          _NowPlayingBanner(
+            station: appState.activeRadioStation!,
+            isDark: isDark,
+            accentColor: accentColor,
+            onStop: () => appState.stopRadio(),
+          ),
+          const SizedBox(height: 16),
+        ],
+
+        // Volume control
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: cardBg,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Radio Volume',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? AppTheme.nordicTextPrimary : AppTheme.ceramicTextPrimary,
+                    ),
+                  ),
+                  Text(
+                    '${(appState.isRadioPlaying ? 55 : 0).toInt()}%',
+                    style: TextStyle(
+                      color: accentColor,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+              Slider(
+                value: 0.55,
+                onChanged: (val) => appState.setRadioVolume(val),
+                activeColor: accentColor,
+                inactiveColor: cardSubtle,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
         Text(
-          'SELECT SOUNDSCAPE',
+          'LOFI & CHILL STATIONS',
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w700,
             letterSpacing: 1.1,
-            color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+            color: isDark ? AppTheme.nordicTextSecondary : AppTheme.ceramicTextSecondary,
+          ),
+        ),
+        const SizedBox(height: 10),
+
+        ...LiveRadioStation.all.map((station) {
+          final isActive = appState.activeRadioStation?.id == station.id;
+          return Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            decoration: BoxDecoration(
+              color: isActive
+                  ? accentColor.withValues(alpha: isDark ? 0.18 : 0.14)
+                  : cardBg,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isActive ? accentColor : Colors.transparent,
+                width: 1.5,
+              ),
+            ),
+            child: ListTile(
+              leading: Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: isDark ? AppTheme.nordicCardSubtle : Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                alignment: Alignment.center,
+                child: Text(station.icon, style: const TextStyle(fontSize: 20)),
+              ),
+              title: Text(
+                station.name,
+                style: TextStyle(
+                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                  color: isActive
+                      ? accentColor
+                      : (isDark ? AppTheme.nordicTextPrimary : AppTheme.ceramicTextPrimary),
+                ),
+              ),
+              subtitle: Text(
+                station.genre,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? AppTheme.nordicTextSecondary : AppTheme.ceramicTextSecondary,
+                ),
+              ),
+              trailing: isActive
+                  ? IconButton(
+                      icon: Icon(
+                        appState.isRadioPlaying
+                            ? Icons.pause_circle_filled_rounded
+                            : Icons.play_circle_fill_rounded,
+                        color: accentColor,
+                        size: 32,
+                      ),
+                      onPressed: () => appState.toggleRadio(),
+                    )
+                  : IconButton(
+                      icon: Icon(
+                        Icons.play_circle_outline_rounded,
+                        color: isDark
+                            ? AppTheme.nordicTextSecondary
+                            : AppTheme.ceramicTextSecondary,
+                        size: 32,
+                      ),
+                      onPressed: () => appState.setRadioStation(station),
+                    ),
+              onTap: () => appState.setRadioStation(station),
+            ),
+          );
+        }),
+
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: cardBg,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.info_outline_rounded,
+                  size: 14,
+                  color: isDark
+                      ? AppTheme.nordicTextSecondary
+                      : AppTheme.ceramicTextSecondary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Streams require an internet connection. Volume mixer keeps SFX separate.',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isDark
+                        ? AppTheme.nordicTextSecondary
+                        : AppTheme.ceramicTextSecondary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── Tab 2: Offline Ambient ──────────────────────────────────────────────────
+
+  Widget _buildAmbientTab(
+    BuildContext context,
+    AppState appState,
+    bool isDark,
+    Color accentColor,
+  ) {
+    final cardBg = isDark ? AppTheme.nordicCard : AppTheme.ceramicCard;
+    final cardSubtle = isDark ? AppTheme.nordicCardSubtle : AppTheme.ceramicCardSubtle;
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      children: [
+        Text(
+          'OFFLINE SOUNDSCAPES',
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.1,
+            color: isDark ? AppTheme.nordicTextSecondary : AppTheme.ceramicTextSecondary,
           ),
         ),
         const SizedBox(height: 12),
@@ -150,11 +344,11 @@ class _SoundscapeSheetState extends State<SoundscapeSheet>
             margin: const EdgeInsets.only(bottom: 8),
             decoration: BoxDecoration(
               color: isSelected
-                  ? AppTheme.primaryAqua.withValues(alpha: isDark ? 0.15 : 0.12)
-                  : (isDark ? const Color(0xFF141D30) : const Color(0xFFF7FAFC)),
+                  ? accentColor.withValues(alpha: isDark ? 0.15 : 0.12)
+                  : cardBg,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isSelected ? AppTheme.primaryAqua : Colors.transparent,
+                color: isSelected ? accentColor : Colors.transparent,
                 width: 1.5,
               ),
             ),
@@ -163,7 +357,7 @@ class _SoundscapeSheetState extends State<SoundscapeSheet>
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1C273E) : Colors.white,
+                  color: isDark ? cardSubtle : Colors.white,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 alignment: Alignment.center,
@@ -174,15 +368,19 @@ class _SoundscapeSheetState extends State<SoundscapeSheet>
                 style: TextStyle(
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                   color: isSelected
-                      ? AppTheme.primaryAqua
-                      : (isDark ? Colors.white : Colors.black87),
+                      ? accentColor
+                      : (isDark
+                          ? AppTheme.nordicTextPrimary
+                          : AppTheme.ceramicTextPrimary),
                 ),
               ),
               subtitle: Text(
                 sound.description,
                 style: TextStyle(
                   fontSize: 12,
-                  color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+                  color: isDark
+                      ? AppTheme.nordicTextSecondary
+                      : AppTheme.ceramicTextSecondary,
                 ),
               ),
               trailing: isSelected && sound.type != AmbientSoundType.none
@@ -191,13 +389,13 @@ class _SoundscapeSheetState extends State<SoundscapeSheet>
                         appState.isAmbientPlaying
                             ? Icons.pause_circle_filled_rounded
                             : Icons.play_circle_fill_rounded,
-                        color: AppTheme.primaryAqua,
+                        color: accentColor,
                         size: 32,
                       ),
                       onPressed: () => appState.toggleAmbientPlayback(),
                     )
                   : (isSelected
-                      ? const Icon(Icons.check_circle_rounded, color: AppTheme.primaryAqua)
+                      ? Icon(Icons.check_circle_rounded, color: accentColor)
                       : null),
               onTap: () => appState.setAmbientSound(sound.type),
             ),
@@ -205,11 +403,10 @@ class _SoundscapeSheetState extends State<SoundscapeSheet>
         }),
 
         const SizedBox(height: 16),
-        // Volume Control
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF141D30) : const Color(0xFFF7FAFC),
+            color: cardBg,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
@@ -222,13 +419,15 @@ class _SoundscapeSheetState extends State<SoundscapeSheet>
                     'Ambient Volume',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white : Colors.black,
+                      color: isDark
+                          ? AppTheme.nordicTextPrimary
+                          : AppTheme.ceramicTextPrimary,
                     ),
                   ),
                   Text(
                     '${(appState.ambientVolume * 100).toInt()}%',
-                    style: const TextStyle(
-                      color: AppTheme.primaryAqua,
+                    style: TextStyle(
+                      color: accentColor,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -237,6 +436,8 @@ class _SoundscapeSheetState extends State<SoundscapeSheet>
               Slider(
                 value: appState.ambientVolume,
                 onChanged: (val) => appState.setAmbientVolume(val),
+                activeColor: accentColor,
+                inactiveColor: cardSubtle,
               ),
             ],
           ),
@@ -245,25 +446,33 @@ class _SoundscapeSheetState extends State<SoundscapeSheet>
     );
   }
 
-  Widget _buildSpotifyTab(BuildContext context, AppState appState, bool isDark) {
+  // ── Tab 3: Spotify ──────────────────────────────────────────────────────────
+
+  Widget _buildSpotifyTab(
+    BuildContext context,
+    AppState appState,
+    bool isDark,
+  ) {
+    final cardBg = isDark ? AppTheme.nordicCard : AppTheme.ceramicCard;
+
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       children: [
-        // Apple Music/Spotify Notice
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: const Color(0xFF1DB954).withValues(alpha: isDark ? 0.15 : 0.12),
+            color: const Color(0xFF1DB954).withValues(alpha: isDark ? 0.15 : 0.1),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFF1DB954).withValues(alpha: 0.4)),
+            border: Border.all(
+                color: const Color(0xFF1DB954).withValues(alpha: 0.35)),
           ),
           child: const Row(
             children: [
-              Text('🟢 ', style: TextStyle(fontSize: 16)),
+              Text('🎵 ', style: TextStyle(fontSize: 16)),
               Expanded(
                 child: Text(
-                  'Launch any playlist in Spotify. HydroPulse timer chimes and water logs will mix smoothly without interrupting your music.',
-                  style: TextStyle(fontSize: 12, height: 1.35),
+                  'Tap a playlist to open it in Spotify. Your hydration timers and water sounds will continue in the background.',
+                  style: TextStyle(fontSize: 12, height: 1.4),
                 ),
               ),
             ],
@@ -277,41 +486,78 @@ class _SoundscapeSheetState extends State<SoundscapeSheet>
             fontSize: 11,
             fontWeight: FontWeight.w700,
             letterSpacing: 1.1,
-            color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+            color: isDark
+                ? AppTheme.nordicTextSecondary
+                : AppTheme.ceramicTextSecondary,
           ),
         ),
         const SizedBox(height: 10),
 
         ...SpotifyFocusPlaylist.curated.map((playlist) {
+          final isFeatured = playlist.isFeatured;
           return Container(
             margin: const EdgeInsets.only(bottom: 8),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF141D30) : const Color(0xFFF7FAFC),
+              color: isFeatured
+                  ? const Color(0xFF1DB954).withValues(alpha: isDark ? 0.12 : 0.08)
+                  : cardBg,
               borderRadius: BorderRadius.circular(16),
+              border: isFeatured
+                  ? Border.all(
+                      color: const Color(0xFF1DB954).withValues(alpha: 0.4))
+                  : null,
             ),
             child: ListTile(
               leading: Container(
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1C273E) : Colors.white,
+                  color: isDark ? AppTheme.nordicCardSubtle : Colors.white,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 alignment: Alignment.center,
                 child: Text(playlist.icon, style: const TextStyle(fontSize: 20)),
               ),
-              title: Text(
-                playlist.title,
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
+              title: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      playlist.title,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? AppTheme.nordicTextPrimary
+                            : AppTheme.ceramicTextPrimary,
+                      ),
+                    ),
+                  ),
+                  if (isFeatured)
+                    Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1DB954),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text(
+                        'YOUR PICK',
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                ],
               ),
               subtitle: Text(
                 playlist.subtitle,
                 style: TextStyle(
                   fontSize: 12,
-                  color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+                  color: isDark
+                      ? AppTheme.nordicTextSecondary
+                      : AppTheme.ceramicTextSecondary,
                 ),
               ),
               trailing: ElevatedButton.icon(
@@ -319,11 +565,15 @@ class _SoundscapeSheetState extends State<SoundscapeSheet>
                   backgroundColor: const Color(0xFF1DB954),
                   foregroundColor: Colors.white,
                   elevation: 0,
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
                 icon: const Icon(Icons.open_in_new_rounded, size: 14),
-                label: const Text('Play', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                label: const Text('Open',
+                    style:
+                        TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                 onPressed: () => appState.launchSpotifyPlaylist(playlist),
               ),
             ),
@@ -331,36 +581,48 @@ class _SoundscapeSheetState extends State<SoundscapeSheet>
         }),
 
         const SizedBox(height: 14),
-        // Custom Spotify URL Input
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF141D30) : const Color(0xFFF7FAFC),
+            color: cardBg,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Custom Spotify Playlist',
-                style: TextStyle(fontWeight: FontWeight.w700),
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: isDark
+                      ? AppTheme.nordicTextPrimary
+                      : AppTheme.ceramicTextPrimary,
+                ),
               ),
               const SizedBox(height: 6),
-              const Text(
+              Text(
                 'Paste any Spotify playlist, album, or track URL:',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark
+                      ? AppTheme.nordicTextSecondary
+                      : AppTheme.ceramicTextSecondary,
+                ),
               ),
               const SizedBox(height: 10),
               Row(
                 children: [
                   Expanded(
                     child: TextField(
-                      controller: _customSpotifyController..text = appState.customSpotifyUrl,
+                      controller: _customSpotifyController
+                        ..text = appState.customSpotifyUrl,
                       decoration: InputDecoration(
                         hintText: 'https://open.spotify.com/playlist/...',
                         hintStyle: const TextStyle(fontSize: 12),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 10),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
                   ),
@@ -369,11 +631,13 @@ class _SoundscapeSheetState extends State<SoundscapeSheet>
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1DB954),
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                     onPressed: () {
                       if (_customSpotifyController.text.isNotEmpty) {
-                        appState.launchCustomSpotifyUrl(_customSpotifyController.text);
+                        appState.launchCustomSpotifyUrl(
+                            _customSpotifyController.text);
                       }
                     },
                     child: const Text('Open'),
@@ -384,6 +648,125 @@ class _SoundscapeSheetState extends State<SoundscapeSheet>
           ),
         ),
       ],
+    );
+  }
+}
+
+// ── Helper Widgets ──────────────────────────────────────────────────────────
+
+class _LivePill extends StatelessWidget {
+  final String label;
+  final bool isDark;
+  final Color accentColor;
+
+  const _LivePill({
+    required this.label,
+    required this.isDark,
+    required this.accentColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: accentColor.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: accentColor.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: accentColor,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: accentColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NowPlayingBanner extends StatelessWidget {
+  final LiveRadioStation station;
+  final bool isDark;
+  final Color accentColor;
+  final VoidCallback onStop;
+
+  const _NowPlayingBanner({
+    required this.station,
+    required this.isDark,
+    required this.accentColor,
+    required this.onStop,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: accentColor.withValues(alpha: isDark ? 0.12 : 0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: accentColor.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        children: [
+          Text(station.icon, style: const TextStyle(fontSize: 24)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'NOW PLAYING',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.8,
+                    color: accentColor,
+                  ),
+                ),
+                Text(
+                  station.name,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: isDark
+                        ? AppTheme.nordicTextPrimary
+                        : AppTheme.ceramicTextPrimary,
+                  ),
+                ),
+                Text(
+                  station.description,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark
+                        ? AppTheme.nordicTextSecondary
+                        : AppTheme.ceramicTextSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.stop_circle_rounded, size: 28),
+            color: accentColor,
+            onPressed: onStop,
+          ),
+        ],
+      ),
     );
   }
 }

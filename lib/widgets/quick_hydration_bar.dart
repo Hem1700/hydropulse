@@ -38,10 +38,12 @@ class QuickHydrationBar extends StatelessWidget {
               onPressed: () => Navigator.pop(ctx),
               child: const Text('Cancel'),
             ),
-            ElevatedButton(
+              ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryAqua,
-                foregroundColor: Colors.black,
+                backgroundColor: Theme.of(context).brightness == Brightness.dark
+                    ? AppTheme.nordicWater
+                    : AppTheme.ceramicWater,
+                foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
               onPressed: () {

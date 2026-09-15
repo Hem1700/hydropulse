@@ -57,30 +57,16 @@ class _DualProgressDialState extends State<DualProgressDial>
 
   @override
   Widget build(BuildContext context) {
-    const double dialSize = 280.0;
+    const double dialSize = 270.0;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    Color trackColor;
-    Color progressStartColor;
-    Color progressEndColor;
+    final Color trackColor = isDark ? const Color(0xFF262B35) : const Color(0xFFE6E0D5);
+    final Color progressColor = isDark
+        ? (widget.mode == SessionMode.focus ? AppTheme.nordicFocusArc : AppTheme.nordicBreak)
+        : (widget.mode == SessionMode.focus ? AppTheme.ceramicFocusArc : AppTheme.ceramicTerracotta);
 
-    switch (widget.mode) {
-      case SessionMode.focus:
-        trackColor = isDark ? const Color(0xFF162138) : const Color(0xFFE2E8F0);
-        progressStartColor = AppTheme.primaryAqua;
-        progressEndColor = AppTheme.focusPurple;
-        break;
-      case SessionMode.shortBreak:
-        trackColor = isDark ? const Color(0xFF132822) : const Color(0xFFD1FAE5);
-        progressStartColor = AppTheme.breakGreen;
-        progressEndColor = AppTheme.primaryAqua;
-        break;
-      case SessionMode.longBreak:
-        trackColor = isDark ? const Color(0xFF262015) : const Color(0xFFFEF3C7);
-        progressStartColor = AppTheme.softAmber;
-        progressEndColor = AppTheme.breakGreen;
-        break;
-    }
+    final Color waterColorPrimary = isDark ? AppTheme.nordicWater : AppTheme.ceramicWater;
+    final Color waterColorSecondary = isDark ? const Color(0xFF4F6B84) : const Color(0xFF5E7E69);
 
     final int waterPct = (widget.waterProgress * 100).toInt();
 
@@ -91,38 +77,20 @@ class _DualProgressDialState extends State<DualProgressDial>
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // Ambient outer glow when running
-            if (widget.isRunning)
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 600),
-                width: dialSize - 10,
-                height: dialSize - 10,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: progressStartColor.withValues(alpha: 0.18),
-                      blurRadius: 36,
-                      spreadRadius: 8,
-                    ),
-                  ],
-                ),
-              ),
-
-            // Inner liquid reservoir
+            // Inner liquid reservoir (no neon)
             Padding(
-              padding: const EdgeInsets.all(18.0),
+              padding: const EdgeInsets.all(22.0),
               child: ClipOval(
                 child: AnimatedBuilder(
                   animation: _waveController,
                   builder: (context, child) {
                     return CustomPaint(
-                      size: const Size(dialSize - 36, dialSize - 36),
+                      size: const Size(dialSize - 44, dialSize - 44),
                       painter: LiquidWavePainter(
                         wavePhase: _waveController.value * 2 * math.pi,
                         fillPercentage: widget.waterProgress,
-                        primaryColor: AppTheme.primaryAqua,
-                        secondaryColor: AppTheme.deepWater,
+                        primaryColor: waterColorPrimary,
+                        secondaryColor: waterColorSecondary,
                       ),
                     );
                   },
@@ -130,15 +98,14 @@ class _DualProgressDialState extends State<DualProgressDial>
               ),
             ),
 
-            // Outer Radial Ring Painter (Focus Progress)
+            // Outer Radial Ring Painter (Clean matte line)
             CustomPaint(
               size: const Size(dialSize, dialSize),
-              painter: _RadialTimerPainter(
+              painter: _MatteTimerPainter(
                 progress: widget.timerProgress,
                 trackColor: trackColor,
-                startColor: progressStartColor,
-                endColor: progressEndColor,
-                strokeWidth: 12.0,
+                progressColor: progressColor,
+                strokeWidth: 6.0,
               ),
             ),
 
@@ -148,83 +115,45 @@ class _DualProgressDialState extends State<DualProgressDial>
               children: [
                 // Mode Badge
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
-                    color: (isDark ? Colors.black : Colors.white).withValues(alpha: 0.75),
-                    borderRadius: BorderRadius.circular(20),
+                    color: isDark ? const Color(0xFF222630) : const Color(0xFFEAE5DB),
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: progressStartColor.withValues(alpha: 0.4),
-                      width: 1.2,
+                      color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
                     ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        widget.mode == SessionMode.focus
-                            ? Icons.self_improvement_rounded
-                            : Icons.local_drink_rounded,
-                        size: 14,
-                        color: progressStartColor,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        widget.mode.shortName.toUpperCase(),
-                        style: TextStyle(
-                          color: progressStartColor,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    widget.mode.shortName.toUpperCase(),
+                    style: TextStyle(
+                      color: isDark ? AppTheme.nordicTextSecondary : AppTheme.ceramicTextSecondary,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.0,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
 
                 // Countdown Timer Text
                 Text(
                   _formatTime(widget.remainingSeconds),
                   style: TextStyle(
-                    fontSize: 48,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -1.0,
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
-                    shadows: isDark
-                        ? [
-                            Shadow(
-                              color: Colors.black.withValues(alpha: 0.7),
-                              blurRadius: 12,
-                            ),
-                          ]
-                        : null,
+                    fontSize: 46,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -1.2,
+                    color: isDark ? AppTheme.nordicTextPrimary : AppTheme.ceramicTextPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
 
                 // Water Subtitle
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: (isDark ? Colors.black : Colors.white).withValues(alpha: 0.55),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text(
-                        '💧 ',
-                        style: TextStyle(fontSize: 12),
-                      ),
-                      Text(
-                        '${widget.waterMl} / ${widget.waterGoalMl} ml ($waterPct%)',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? AppTheme.primaryAqua : AppTheme.deepWater,
-                        ),
-                      ),
-                    ],
+                Text(
+                  '💧 ${widget.waterMl} / ${widget.waterGoalMl} ml ($waterPct%)',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? AppTheme.nordicTextSecondary : AppTheme.ceramicTextSecondary,
                   ),
                 ),
               ],
@@ -236,18 +165,16 @@ class _DualProgressDialState extends State<DualProgressDial>
   }
 }
 
-class _RadialTimerPainter extends CustomPainter {
+class _MatteTimerPainter extends CustomPainter {
   final double progress; // 0.0 to 1.0
   final Color trackColor;
-  final Color startColor;
-  final Color endColor;
+  final Color progressColor;
   final double strokeWidth;
 
-  _RadialTimerPainter({
+  _MatteTimerPainter({
     required this.progress,
     required this.trackColor,
-    required this.startColor,
-    required this.endColor,
+    required this.progressColor,
     required this.strokeWidth,
   });
 
@@ -270,34 +197,19 @@ class _RadialTimerPainter extends CustomPainter {
     // Active progress arc
     final Rect rect = Rect.fromCircle(center: center, radius: radius);
     final Paint progressPaint = Paint()
-      ..shader = SweepGradient(
-        startAngle: -math.pi / 2,
-        endAngle: 3 * math.pi / 2,
-        colors: [startColor, endColor, startColor],
-      ).createShader(rect)
+      ..color = progressColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
 
     final double sweepAngle = 2 * math.pi * progress.clamp(0.0, 1.0);
     canvas.drawArc(rect, -math.pi / 2, sweepAngle, false, progressPaint);
-
-    // Outer edge indicator dot
-    final double angle = -math.pi / 2 + sweepAngle;
-    final double dotX = center.dx + radius * math.cos(angle);
-    final double dotY = center.dy + radius * math.sin(angle);
-
-    final Paint dotPaint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.fill;
-
-    canvas.drawCircle(Offset(dotX, dotY), strokeWidth / 2.5, dotPaint);
   }
 
   @override
-  bool shouldRepaint(covariant _RadialTimerPainter oldDelegate) {
+  bool shouldRepaint(covariant _MatteTimerPainter oldDelegate) {
     return oldDelegate.progress != progress ||
-        oldDelegate.startColor != startColor ||
-        oldDelegate.endColor != endColor;
+        oldDelegate.trackColor != trackColor ||
+        oldDelegate.progressColor != progressColor;
   }
 }

@@ -1,100 +1,108 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Brand colors
-  static const Color primaryAqua = Color(0xFF00E5FF);
-  static const Color deepWater = Color(0xFF0077B6);
-  static const Color focusPurple = Color(0xFF8A4FFF);
-  static const Color breakGreen = Color(0xFF00E676);
-  static const Color softAmber = Color(0xFFFFB703);
+  // Nordic Slate Palette (Matte Dark Mode)
+  static const Color nordicBg = Color(0xFF1A1C22);
+  static const Color nordicCard = Color(0xFF242831);
+  static const Color nordicCardSubtle = Color(0xFF2B303C);
+  static const Color nordicTextPrimary = Color(0xFFF1F3F5);
+  static const Color nordicTextSecondary = Color(0xFF8E9AA8);
+  static const Color nordicWater = Color(0xFF7093B3); // Powdery Fjord Blue
+  static const Color nordicFocusArc = Color(0xFFE9ECEF); // Bone White
+  static const Color nordicBreak = Color(0xFF7A9A85); // Muted Sage
 
-  // Dark palette
-  static const Color darkBg = Color(0xFF090D16);
-  static const Color darkCard = Color(0xFF131B2C);
-  static const Color darkCardHover = Color(0xFF1B273E);
-  static const Color darkTextPrimary = Color(0xFFF0F6FC);
-  static const Color darkTextSecondary = Color(0xFF8B9BB4);
+  // Compat aliases — old color names still referenced in screens/widgets
+  static const Color primaryAqua = nordicWater;
+  static const Color darkTextSecondary = nordicTextSecondary;
+  static const Color lightTextSecondary = ceramicTextSecondary;
+  static const Color darkCard = nordicCard;
+  static const Color lightCard = ceramicCard;
+  // Accent compat colors (formerly neon — now muted equivalents)
+  static const Color softAmber = ceramicTerracotta;       // warm amber → terracotta
+  static const Color focusPurple = nordicWater;           // focus arc → fjord blue
+  static const Color breakGreen = nordicBreak;            // break → sage
 
-  // Light palette
-  static const Color lightBg = Color(0xFFF4F7FB);
-  static const Color lightCard = Colors.white;
-  static const Color lightCardHover = Color(0xFFE8EEF5);
-  static const Color lightTextPrimary = Color(0xFF0D1B2A);
-  static const Color lightTextSecondary = Color(0xFF5B6B82);
+  // Warm Ceramic Zen Palette (Organic Light Mode)
+  static const Color ceramicBg = Color(0xFFF8F6F0); // Oatmeal Linen
+  static const Color ceramicCard = Color(0xFFEAE5DB); // Soft Clay
+  static const Color ceramicCardSubtle = Color(0xFFDFD9CD);
+  static const Color ceramicTextPrimary = Color(0xFF262B28); // Earthy Slate
+  static const Color ceramicTextSecondary = Color(0xFF5C665F);
+  static const Color ceramicWater = Color(0xFF7A9A85); // Japanese Sage Green
+  static const Color ceramicFocusArc = Color(0xFF3A423D); // Charcoal
+  static const Color ceramicTerracotta = Color(0xFFC48B71); // Terracotta Accent
 
   static ThemeData darkTheme = ThemeData(
     brightness: Brightness.dark,
-    scaffoldBackgroundColor: darkBg,
-    primaryColor: primaryAqua,
+    scaffoldBackgroundColor: nordicBg,
+    primaryColor: nordicWater,
     colorScheme: const ColorScheme.dark(
-      primary: primaryAqua,
-      secondary: focusPurple,
-      surface: darkCard,
-      error: Color(0xFFFF5252),
+      primary: nordicWater,
+      secondary: nordicBreak,
+      surface: nordicCard,
+      error: Color(0xFFE06C75),
     ),
-    cardColor: darkCard,
+    cardColor: nordicCard,
     appBarTheme: const AppBarTheme(
       backgroundColor: Colors.transparent,
       elevation: 0,
       centerTitle: true,
       titleTextStyle: TextStyle(
-        color: darkTextPrimary,
-        fontSize: 18,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0.5,
+        color: nordicTextPrimary,
+        fontSize: 17,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.3,
       ),
-      iconTheme: IconThemeData(color: darkTextPrimary),
+      iconTheme: IconThemeData(color: nordicTextPrimary),
     ),
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: darkCard,
-      selectedItemColor: primaryAqua,
-      unselectedItemColor: darkTextSecondary,
-      elevation: 12,
+      backgroundColor: nordicCard,
+      selectedItemColor: nordicWater,
+      unselectedItemColor: nordicTextSecondary,
+      elevation: 0,
       type: BottomNavigationBarType.fixed,
     ),
-    sliderTheme: SliderThemeData(
-      activeTrackColor: primaryAqua,
-      inactiveTrackColor: darkCardHover,
-      thumbColor: primaryAqua,
-      overlayColor: primaryAqua.withValues(alpha: 0.2),
+    sliderTheme: const SliderThemeData(
+      activeTrackColor: nordicWater,
+      inactiveTrackColor: nordicCardSubtle,
+      thumbColor: nordicWater,
     ),
   );
 
   static ThemeData lightTheme = ThemeData(
     brightness: Brightness.light,
-    scaffoldBackgroundColor: lightBg,
-    primaryColor: primaryAqua,
+    scaffoldBackgroundColor: ceramicBg,
+    primaryColor: ceramicWater,
     colorScheme: const ColorScheme.light(
-      primary: primaryAqua,
-      secondary: focusPurple,
-      surface: lightCard,
-      error: Color(0xFFFF5252),
+      primary: ceramicWater,
+      secondary: ceramicTerracotta,
+      surface: ceramicCard,
+      error: Color(0xFFE06C75),
     ),
-    cardColor: lightCard,
+    cardColor: ceramicCard,
     appBarTheme: const AppBarTheme(
       backgroundColor: Colors.transparent,
       elevation: 0,
       centerTitle: true,
       titleTextStyle: TextStyle(
-        color: lightTextPrimary,
-        fontSize: 18,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0.5,
+        color: ceramicTextPrimary,
+        fontSize: 17,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.3,
       ),
-      iconTheme: IconThemeData(color: lightTextPrimary),
+      iconTheme: IconThemeData(color: ceramicTextPrimary),
     ),
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: lightCard,
-      selectedItemColor: primaryAqua,
-      unselectedItemColor: lightTextSecondary,
-      elevation: 12,
+      backgroundColor: ceramicCard,
+      selectedItemColor: ceramicWater,
+      unselectedItemColor: ceramicTextSecondary,
+      elevation: 0,
       type: BottomNavigationBarType.fixed,
     ),
-    sliderTheme: SliderThemeData(
-      activeTrackColor: primaryAqua,
-      inactiveTrackColor: lightCardHover,
-      thumbColor: primaryAqua,
-      overlayColor: primaryAqua.withValues(alpha: 0.2),
+    sliderTheme: const SliderThemeData(
+      activeTrackColor: ceramicWater,
+      inactiveTrackColor: ceramicCardSubtle,
+      thumbColor: ceramicWater,
     ),
   );
 }
