@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../models/ambient_sound.dart';
 
@@ -18,10 +19,14 @@ class AudioService {
   }
 
   void _initAudioContext() {
+    if (kIsWeb) {
+      _ambientPlayer.setReleaseMode(ReleaseMode.loop);
+      return;
+    }
     // Configure iOS AudioSession to mix with others (like Spotify or Apple Music)
     final context = AudioContext(
       iOS: AudioContextIOS(
-        category: AVAudioSessionCategory.ambient,
+        category: AVAudioSessionCategory.playback,
         options: const {
           AVAudioSessionOptions.mixWithOthers,
           AVAudioSessionOptions.defaultToSpeaker,
