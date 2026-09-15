@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HydroPulse - Design Directions & Mockups</title>
+  <style>
+    :root {
+      --bg: #0e1117;
+      --card-bg: #161b22;
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f0f6fc;
+      --text-muted: #8b949e;
+      --accent-blue: #7093b3;
+      --accent-sage: #7a9a85;
+      --accent-clay: #c48b71;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 32px 20px;
+    }
+
+    .header {
+      max-width: 1200px;
+      margin: 0 auto 36px;
+      text-align: center;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 14px;
+      background: rgba(112, 147, 179, 0.15);
+      color: var(--accent-blue);
+      border: 1px solid rgba(112, 147, 179, 0.3);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -0.8px;
+      margin-bottom: 8px;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 16px;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    /* Tab Switcher */
+    .tabs-nav {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin: 28px 0 36px;
+    }
+
+    .tab-btn {
+      background: #1c2128;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 10px 22px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background: #2d333b;
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Mockups Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 32px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .mockup-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .mockup-card:hover {
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .card-header {
+      width: 100%;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .swatches {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .swatch {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .image-container {
+      width: 100%;
+      max-width: 380px;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: #000;
+    }
+
+    .image-container img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Live Interactive Simulator */
+    #simulator-tab {
+      display: none;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .sim-layout {
+      display: flex;
+      gap: 40px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* Phone Bezel */
+    .phone-frame {
+      width: 360px;
+      height: 720px;
+      border-radius: 48px;
+      padding: 12px;
+      background: #252830;
+      box-shadow: 0 25px 60px -12px rgba(0,0,0,0.6), inset 0 0 2px 2px rgba(255,255,255,0.1);
+      position: relative;
+    }
+
+    .screen {
+      width: 100%;
+      height: 100%;
+      border-radius: 38px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    /* Theme Styles inside Phone */
+    .screen.theme-nordic {
+      background: #181A20;
+      color: #F1F3F5;
+    }
+    .screen.theme-nordic .timer-track { stroke: #252932; }
+    .screen.theme-nordic .timer-arc { stroke: #E9ECEF; }
+    .screen.theme-nordic .water-wave { fill: #5A7B9A; opacity: 0.85; }
+    .screen.theme-nordic .water-wave-back { fill: #415B73; opacity: 0.45; }
+    .screen.theme-nordic .pill-btn {
+      background: #222630;
+      color: #E1E4EA;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .screen.theme-nordic .pill-btn:hover { background: #2A303D; }
+    .screen.theme-nordic .pill-btn.primary {
+      background: #2D3949;
+      color: #8EB3D6;
+      border-color: rgba(142, 179, 214, 0.3);
+    }
+
+    .screen.theme-ceramic {
+      background: #F6F3ED;
+      color: #272C28;
+    }
+    .screen.theme-ceramic .timer-track { stroke: #E5DFD4; }
+    .screen.theme-ceramic .timer-arc { stroke: #38423B; }
+    .screen.theme-ceramic .water-wave { fill: #7E9E8B; opacity: 0.88; }
+    .screen.theme-ceramic .water-wave-back { fill: #658472; opacity: 0.40; }
+    .screen.theme-ceramic .pill-btn {
+      background: #EAE5DB;
+      color: #38423B;
+      border: 1px solid rgba(0,0,0,0.06);
+    }
+    .screen.theme-ceramic .pill-btn:hover { background: #DFD8CB; }
+    .screen.theme-ceramic .pill-btn.primary {
+      background: #DCE7E0;
+      color: #345742;
+      border-color: rgba(69, 107, 83, 0.25);
+    }
+
+    .phone-header {
+      padding: 32px 24px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .phone-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .phone-streak {
+      font-size: 12px;
+      font-weight: 600;
+      opacity: 0.75;
+    }
+
+    .dial-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .dial-svg {
+      width: 250px;
+      height: 250px;
+    }
+
+    .dial-center-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .countdown-text {
+      font-size: 42px;
+      font-weight: 700;
+      letter-spacing: -1.5px;
+      line-height: 1;
+    }
+
+    .water-count-text {
+      font-size: 12px;
+      font-weight: 600;
+      opacity: 0.8;
+      margin-top: 6px;
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    .ctrl-btn {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: transform 0.1s ease;
+    }
+    .ctrl-btn:active { transform: scale(0.92); }
+
+    .btn-play {
+      background: #7093b3;
+      color: #fff;
+    }
+    .theme-ceramic .btn-play {
+      background: #5b7967;
+    }
+
+    .btn-sec {
+      background: rgba(128,128,128,0.15);
+      color: inherit;
+    }
+
+    .quick-bar {
+      padding: 0 20px 32px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .pill-btn {
+      flex: 1;
+      padding: 12px 6px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .pill-btn:active { transform: scale(0.95); }
+    .pill-sub {
+      font-size: 10px;
+      font-weight: 500;
+      opacity: 0.65;
+    }
+
+    /* Controls Panel on right side of simulator */
+    .sim-panel {
+      flex: 1;
+      min-width: 300px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+    }
+
+    .sim-panel h3 {
+      font-size: 18px;
+      margin-bottom: 12px;
+    }
+
+    .audio-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 16px 0;
+    }
+
+    .audio-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: #1e242c;
+      border-radius: 12px;
+      font-size: 13px;
+    }
+
+    .audio-item button {
+      background: #2d3642;
+      border: none;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .audio-item button:hover { background: #3d4959; }
+
+    .vote-box {
+      margin-top: 24px;
+      padding: 16px;
+      border-radius: 14px;
+      background: rgba(112, 147, 179, 0.1);
+      border: 1px dashed rgba(112, 147, 179, 0.4);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="tag">✦ Pinterest & Dribbble Award-Winning Aesthetic</div>
+    <h1>HydroPulse Design Directions</h1>
+    <p class="subtitle">Completely redesigned to replace harsh neons and glossy glows with organic textures, tactile matte controls, and serene typography.</p>
+
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="switchView('mockups')">🖼️ High-Res Mockups & Palette</button>
+      <button class="tab-btn" onclick="switchView('simulator')">📱 Live Interactive Simulator</button>
+    </div>
+  </div>
+
+  <!-- VIEW 1: MOCKUPS GRID -->
+  <div id="mockups-tab" class="grid">
+    <!-- Card 1: Nordic Slate -->
+    <div class="mockup-card">
+      <div class="card-header">
+        <div class="card-title">Concept 1: Nordic Slate (Matte Dark)</div>
+        <div class="card-desc">Deep charcoal slate, bone-white Swiss typography, powdery fjord blue water. Zero neon, zero glow.</div>
+        <div class="swatches">
+          <div class="swatch" style="background: #1A1C22;" title="Charcoal Slate (#1A1C22)"></div>
+          <div class="swatch" style="background: #242831;" title="Card Slate (#242831)"></div>
+          <div class="swatch" style="background: #7093B3;" title="Fjord Blue (#7093B3)"></div>
+          <div class="swatch" style="background: #E9ECEF;" title="Bone White (#E9ECEF)"></div>
+        </div>
+      </div>
+      <div class="image-container">
+        <img src="assets/mockup_nordic_slate.jpg" alt="Nordic Slate Mockup">
+      </div>
+    </div>
+
+    <!-- Card 2: Warm Ceramic Zen -->
+    <div class="mockup-card">
+      <div class="card-header">
+        <div class="card-title">Concept 2: Warm Ceramic (Sage Zen)</div>
+        <div class="card-desc">Warm organic oatmeal paper, clay ceramic dial with Japanese Seigaiha wave motif, earthy sage green.</div>
+        <div class="swatches">
+          <div class="swatch" style="background: #F8F6F0;" title="Oatmeal Linen (#F8F6F0)"></div>
+          <div class="swatch" style="background: #EAE5DB;" title="Clay Ceramic (#EAE5DB)"></div>
+          <div class="swatch" style="background: #7A9A85;" title="Sage Green (#7A9A85)"></div>
+          <div class="swatch" style="background: #C48B71;" title="Terracotta (#C48B71)"></div>
+        </div>
+      </div>
+      <div class="image-container">
+        <img src="assets/mockup_warm_zen.jpg" alt="Warm Zen Mockup">
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 2: LIVE SIMULATOR -->
+  <div id="simulator-tab">
+    <div class="sim-layout">
+      <!-- Phone Frame -->
+      <div class="phone-frame">
+        <div class="screen theme-nordic" id="phone-screen">
+          <div class="phone-header">
+            <span class="phone-title">HYDROPULSE</span>
+            <span class="phone-streak">🔥 4 Days</span>
+          </div>
+
+          <div class="dial-area">
+            <svg class="dial-svg" viewBox="0 0 260 260">
+              <defs>
+                <clipPath id="circle-clip">
+                  <circle cx="130" cy="130" r="100" />
+                </clipPath>
+              </defs>
+
+              <!-- Outer Timer Track -->
+              <circle cx="130" cy="130" r="115" stroke-width="6" fill="none" class="timer-track" />
+              <!-- Outer Timer Arc -->
+              <circle id="progress-arc" cx="130" cy="130" r="115" stroke-width="6" fill="none" class="timer-arc"
+                stroke-dasharray="722.5" stroke-dashoffset="180" stroke-linecap="round" transform="rotate(-90 130 130)" />
+
+              <!-- Inner Liquid Masked Area -->
+              <g clip-path="url(#circle-clip)">
+                <!-- Back wave -->
+                <path id="wave-back" class="water-wave-back" d="M 30 180 Q 80 170 130 180 T 230 180 L 230 240 L 30 240 Z" />
+                <!-- Front wave -->
+                <path id="wave-front" class="water-wave" d="M 30 185 Q 80 195 130 185 T 230 185 L 230 240 L 30 240 Z" />
+              </g>
+            </svg>
+
+            <div class="dial-center-text">
+              <div class="countdown-text" id="timer-display">25:00</div>
+              <div class="water-count-text" id="water-display">550 / 2000 ml (27%)</div>
+            </div>
+          </div>
+
+          <!-- Play/Pause Controls -->
+          <div class="controls">
+            <button class="ctrl-btn btn-sec" onclick="resetTimer()" title="Reset">↺</button>
+            <button class="ctrl-btn btn-play" id="play-btn" onclick="toggleTimer()">▶</button>
+            <button class="ctrl-btn btn-sec" onclick="skipTimer()" title="Skip">⏭</button>
+          </div>
+
+          <!-- Quick Hydration Pills -->
+          <div class="quick-bar">
+            <button class="pill-btn" onclick="addWater(200)">
+              <span>+200ml</span>
+              <span class="pill-sub">Glass</span>
+            </button>
+            <button class="pill-btn primary" onclick="addWater(350)">
+              <span>+350ml</span>
+              <span class="pill-sub">Mug</span>
+            </button>
+            <button class="pill-btn" onclick="addWater(500)">
+              <span>+500ml</span>
+              <span class="pill-sub">Bottle</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Simulator Control Panel -->
+      <div class="sim-panel">
+        <h3>Live Mockup Controls</h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+          Toggle between both design directions right in this interactive preview:
+        </p>
+
+        <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+          <button class="tab-btn active" id="btn-nordic" onclick="setTheme('nordic')">🖤 Nordic Slate (Dark)</button>
+          <button class="tab-btn" id="btn-ceramic" onclick="setTheme('ceramic')">🌾 Warm Ceramic (Zen)</button>
+        </div>
+
+        <h4 style="font-size: 14px; margin-top: 16px;">🎵 Bundled Ambient Soundscapes:</h4>
+        <div class="audio-list">
+          <div class="audio-item">
+            <span>🌧️ Gentle Rain</span>
+            <button onclick="playAudio('assets/audio/rain.wav')">Play</button>
+          </div>
+          <div class="audio-item">
+            <span>🌊 Forest Stream</span>
+            <button onclick="playAudio('assets/audio/stream.wav')">Play</button>
+          </div>
+          <div class="audio-item">
+            <span>🪐 Deep Space / Brown Noise</span>
+            <button onclick="playAudio('assets/audio/brown_noise.wav')">Play</button>
+          </div>
+          <div class="audio-item">
+            <span>🎵 Lo-Fi Pulse</span>
+            <button onclick="playAudio('assets/audio/lofi_pulse.wav')">Play</button>
+          </div>
+          <div class="audio-item">
+            <span>🔔 Zen Singing Bowl Chime</span>
+            <button onclick="playAudio('assets/audio/bowl_chime.wav')">Chime</button>
+          </div>
+        </div>
+
+        <div class="vote-box">
+          <strong>Which do you like better?</strong>
+          <p style="font-size: 13px; margin-top: 4px; color: var(--text-muted);">
+            Pick <strong>Nordic Slate</strong>, <strong>Warm Ceramic</strong>, or we can use <strong>Nordic as Dark Mode</strong> and <strong>Warm Ceramic as Light Mode</strong>!
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let activeAudio = null;
+
+    function playAudio(path) {
+      if (activeAudio) {
+        activeAudio.pause();
+      }
+      activeAudio = new Audio(path);
+      activeAudio.play();
+    }
+
+    function switchView(view) {
+      const mockupsTab = document.getElementById('mockups-tab');
+      const simTab = document.getElementById('simulator-tab');
+      const btns = document.querySelectorAll('.tabs-nav .tab-btn');
+
+      if (view === 'mockups') {
+        mockupsTab.style.display = 'grid';
+        simTab.style.display = 'none';
+        btns[0].classList.add('active');
+        btns[1].classList.remove('active');
+      } else {
+        mockupsTab.style.display = 'none';
+        simTab.style.display = 'block';
+        btns[0].classList.remove('active');
+        btns[1].classList.add('active');
+      }
+    }
+
+    function setTheme(theme) {
+      const screen = document.getElementById('phone-screen');
+      const btnNordic = document.getElementById('btn-nordic');
+      const btnCeramic = document.getElementById('btn-ceramic');
+
+      if (theme === 'nordic') {
+        screen.className = 'screen theme-nordic';
+        btnNordic.classList.add('active');
+        btnCeramic.classList.remove('active');
+      } else {
+        screen.className = 'screen theme-ceramic';
+        btnCeramic.classList.add('active');
+        btnNordic.classList.remove('active');
+      }
+    }
+
+    // Interactive Timer
+    let secondsLeft = 25 * 60;
+    let timerRunning = false;
+    let timerInterval = null;
+    let waterMl = 550;
+    const waterGoal = 2000;
+
+    function formatTime(s) {
+      const m = Math.floor(s / 60);
+      const sec = s % 60;
+      return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+    }
+
+    function updateWaterDisplay() {
+      const pct = Math.round((waterMl / waterGoal) * 100);
+      document.getElementById('water-display').innerText = `${waterMl} / ${waterGoal} ml (${pct}%)`;
+
+      // Update wave height
+      const baselineY = 240 - Math.min(180, (waterMl / waterGoal) * 160);
+      document.getElementById('wave-front').setAttribute('d', 
+        `M 30 ${baselineY} Q 80 ${baselineY - 10} 130 ${baselineY} T 230 ${baselineY} L 230 250 L 30 250 Z`
+      );
+      document.getElementById('wave-back').setAttribute('d', 
+        `M 30 ${baselineY - 4} Q 80 ${baselineY + 6} 130 ${baselineY - 4} T 230 ${baselineY - 4} L 230 250 L 30 250 Z`
+      );
+    }
+
+    function addWater(amount) {
+      waterMl += amount;
+      updateWaterDisplay();
+      playAudio('assets/audio/water_drop.wav');
+    }
+
+    function toggleTimer() {
+      const btn = document.getElementById('play-btn');
+      if (timerRunning) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        btn.innerText = '▶';
+      } else {
+        timerRunning = true;
+        btn.innerText = '❚❚';
+        timerInterval = setInterval(() => {
+          if (secondsLeft > 0) {
+            secondsLeft--;
+            document.getElementById('timer-display').innerText = formatTime(secondsLeft);
+            const progress = 1.0 - (secondsLeft / (25 * 60));
+            const dashOffset = 722.5 * (1.0 - progress);
+            document.getElementById('progress-arc').setAttribute('stroke-dashoffset', dashOffset);
+          } else {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            btn.innerText = '▶';
+            playAudio('assets/audio/bowl_chime.wav');
+            alert('Focus Complete! Time to take a mindful sip of water 💧');
+          }
+        }, 1000);
+      }
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      timerRunning = false;
+      secondsLeft = 25 * 60;
+      document.getElementById('timer-display').innerText = '25:00';
+      document.getElementById('progress-arc').setAttribute('stroke-dashoffset', '722.5');
+      document.getElementById('play-btn').innerText = '▶';
+    }
+
+    function skipTimer() {
+      resetTimer();
+      alert('Skipped to Rest Break! ☕️ Take a sip of water.');
+    }
+
+    updateWaterDisplay();
+  </script>
+</body>
+</html>
